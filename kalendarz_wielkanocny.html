@@ -126,31 +126,23 @@
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modalContent');
 
-    function setCookie(name, value, days = 365) {
-      const expires = new Date(Date.now() + days * 864e5).toUTCString();
-      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+    function setCookie(name, value, days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days*24*60*60*1000));
+      document.cookie = name + "=" + encodeURIComponent(value) + ";expires=" + date.toUTCString() + ";path=/";
     }
 
     function getCookie(name) {
-      return document.cookie.split('; ').reduce((r, v) => {
-        const parts = v.split('=');
-        return parts[0] === name ? decodeURIComponent(parts[1]) : r
-      }, '');
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+      return null;
     }
 
-    let openedEggs = [];
-
-    function loadOpenedEggs() {
-      const cookieData = getCookie('openedEggs');
-      try {
-        openedEggs = cookieData ? JSON.parse(cookieData) : [];
-      } catch (e) {
-        openedEggs = [];
-      }
-    }
+    let openedEggs = JSON.parse(getCookie('openedEggs') || '[]');
 
     function saveOpenedEggs() {
-      setCookie('openedEggs', JSON.stringify(openedEggs));
+      setCookie('openedEggs', JSON.stringify(openedEggs), 365);
     }
 
     function openModal(content) {
@@ -229,12 +221,10 @@
     }
 
     document.getElementById('resetBtn').addEventListener('click', () => {
-      setCookie('openedEggs', '', -1);
-      openedEggs = [];
-      renderCalendar();
+      document.cookie = "openedEggs=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      location.reload();
     });
 
-    loadOpenedEggs();
     renderCalendar();
   </script>
 </body>
