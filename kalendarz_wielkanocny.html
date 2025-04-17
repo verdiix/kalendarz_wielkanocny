@@ -122,96 +122,102 @@
   </div>
 
   <script>
-    const calendar = document.getElementById('calendar');
-    const modal = document.getElementById('modal');
-    const modalContent = document.getElementById('modalContent');
-    const openedEggs = JSON.parse(localStorage.getItem('openedEggs') || '[]');
+    document.addEventListener('DOMContentLoaded', () => {
+      const calendar = document.getElementById('calendar');
+      const modal = document.getElementById('modal');
+      const modalContent = document.getElementById('modalContent');
+      let openedEggs = JSON.parse(localStorage.getItem('openedEggs') || '[]');
 
-    function saveOpenedEggs() {
-      localStorage.setItem('openedEggs', JSON.stringify(openedEggs));
-    }
+      console.log('Odczytane z localStorage:', openedEggs);
 
-    function openModal(content) {
-      modalContent.innerHTML = content;
-      modal.style.display = 'flex';
-    }
-
-    function closeModal() {
-      modal.style.display = 'none';
-    }
-
-    modal.addEventListener('click', closeModal);
-
-    function getRandomPattern() {
-      const colors = ['#ff9999', '#ffcc99', '#ffff99', '#ccff99', '#99ffcc', '#99ccff', '#cc99ff'];
-      const selected = [];
-      while (selected.length < 3) {
-        const c = colors[Math.floor(Math.random() * colors.length)];
-        if (!selected.includes(c)) selected.push(c);
+      function saveOpenedEggs() {
+        localStorage.setItem('openedEggs', JSON.stringify(openedEggs));
+        console.log('Zapisano do localStorage:', openedEggs);
       }
-      return `repeating-linear-gradient(45deg, ${selected[0]}, ${selected[0]} 10px, ${selected[1]} 10px, ${selected[1]} 20px, ${selected[2]} 20px, ${selected[2]} 30px)`;
-    }
 
-    function renderCalendar() {
-      calendar.innerHTML = '';
+      function openModal(content) {
+        modalContent.innerHTML = content;
+        modal.style.display = 'flex';
+      }
 
-      const messages = [
-        `<p>Wesołych Świąt!</p>`,
-        `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Chocolate_easter_eggs.jpg/320px-Chocolate_easter_eggs.jpg" alt="Easter Image" style="max-width:100%">`,
-        `<p>Zajączek już tu był!</p>`,
-        `<p>Miłego dnia!</p>`,
-        `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Easter_bunny_and_eggs.jpg/320px-Easter_bunny_and_eggs.jpg" alt="Zajączek" style="max-width:100%">`,
-        `<p>Czekoladowe jajko czeka!</p>`
-        // Dodaj tutaj wiadomości do jajek 7–30
-      ];
+      function closeModal() {
+        modal.style.display = 'none';
+      }
 
-      for (let i = 0; i < 30; i++) {
-        const egg = document.createElement('button');
-        egg.className = 'egg';
+      modal.addEventListener('click', closeModal);
 
-        const shell = document.createElement('div');
-        shell.className = 'shell';
-
-        const topHalf = document.createElement('div');
-        topHalf.className = 'top';
-        topHalf.style.background = getRandomPattern();
-
-        const bottomHalf = document.createElement('div');
-        bottomHalf.className = 'bottom';
-        bottomHalf.style.background = topHalf.style.background;
-
-        const chick = document.createElement('div');
-        chick.className = 'chick';
-        chick.innerText = '🐥';
-
-        shell.appendChild(topHalf);
-        shell.appendChild(bottomHalf);
-        egg.appendChild(shell);
-        egg.appendChild(chick);
-
-        if (openedEggs.includes(i)) {
-          egg.classList.add('opened');
+      function getRandomPattern() {
+        const colors = ['#ff9999', '#ffcc99', '#ffff99', '#ccff99', '#99ffcc', '#99ccff', '#cc99ff'];
+        const selected = [];
+        while (selected.length < 3) {
+          const c = colors[Math.floor(Math.random() * colors.length)];
+          if (!selected.includes(c)) selected.push(c);
         }
-
-        egg.addEventListener('click', () => {
-          if (!openedEggs.includes(i)) {
-            openedEggs.push(i);
-            egg.classList.add('opened');
-            saveOpenedEggs();
-          }
-          openModal(messages[i] || `<p>Brak wiadomości dla jajka ${i + 1}</p>`);
-        });
-
-        calendar.appendChild(egg);
+        return `repeating-linear-gradient(45deg, ${selected[0]}, ${selected[0]} 10px, ${selected[1]} 10px, ${selected[1]} 20px, ${selected[2]} 20px, ${selected[2]} 30px)`;
       }
-    }
 
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      localStorage.removeItem('openedEggs');
-      location.reload();
+      function renderCalendar() {
+        calendar.innerHTML = '';
+
+        const messages = [
+          `<p>Wesołych Świąt!</p>`,
+          `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Chocolate_easter_eggs.jpg/320px-Chocolate_easter_eggs.jpg" alt="Easter Image" style="max-width:100%">`,
+          `<p>Zajączek już tu był!</p>`,
+          `<p>Miłego dnia!</p>`,
+          `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Easter_bunny_and_eggs.jpg/320px-Easter_bunny_and_eggs.jpg" alt="Zajączek" style="max-width:100%">`,
+          `<p>Czekoladowe jajko czeka!</p>`
+          // Możesz dodać więcej wiadomości do jajek 7–30
+        ];
+
+        for (let i = 0; i < 30; i++) {
+          const egg = document.createElement('button');
+          egg.className = 'egg';
+          egg.setAttribute('data-egg-id', i);
+
+          const shell = document.createElement('div');
+          shell.className = 'shell';
+
+          const topHalf = document.createElement('div');
+          topHalf.className = 'top';
+          topHalf.style.background = getRandomPattern();
+
+          const bottomHalf = document.createElement('div');
+          bottomHalf.className = 'bottom';
+          bottomHalf.style.background = topHalf.style.background;
+
+          const chick = document.createElement('div');
+          chick.className = 'chick';
+          chick.innerText = '🐥';
+
+          shell.appendChild(topHalf);
+          shell.appendChild(bottomHalf);
+          egg.appendChild(shell);
+          egg.appendChild(chick);
+
+          if (openedEggs.includes(i)) {
+            egg.classList.add('opened');
+          }
+
+          egg.addEventListener('click', () => {
+            if (!openedEggs.includes(i)) {
+              openedEggs.push(i);
+              egg.classList.add('opened');
+              saveOpenedEggs();
+            }
+            openModal(messages[i] || `<p>Brak wiadomości dla jajka ${i + 1}</p>`);
+          });
+
+          calendar.appendChild(egg);
+        }
+      }
+
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        localStorage.removeItem('openedEggs');
+        location.reload();
+      });
+
+      renderCalendar();
     });
-
-    renderCalendar();
   </script>
 </body>
 </html>
