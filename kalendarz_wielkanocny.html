@@ -4,18 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kalendarz Wielkanocny</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      background: url('https://www.tapeciarnia.pl/tapety/normalne/232196_wielkanoc_jajka_pisanki_kwiaty.jpg') no-repeat center center fixed;
-      background-size: 100% 100%;
-      /* color: white; */
-      position: relative;
+      background: #fdf6e3;
+      padding: 20px;
     }
     h1 {
       text-align: center;
+      font-family: 'Caveat', cursive;
+      font-size: 48px;
+      color: #d48872;
+      text-shadow: 2px 2px 4px rgba(255, 182, 193, 0.5);
+      margin-bottom: 30px;
+      position: relative;
+    }
+    h1::before, h1::after {
+      content: "🥚🐣🌸";
+      margin: 0 10px;
     }
     .calendar {
       display: grid;
@@ -44,15 +51,6 @@
       position: absolute;
       width: 100%;
       height: 50%;
-      background: repeating-linear-gradient(
-        45deg,
-        #ffcccc,
-        #ffcccc 10px,
-        #ffcc99 10px,
-        #ffcc99 20px,
-        #ffff99 20px,
-        #ffff99 30px
-      );
       border: 2px solid #b76e79;
       transition: transform 1s ease, opacity 1s ease;
     }
@@ -151,18 +149,22 @@
     }
 
     let openedEggs = JSON.parse(getCookie('openedEggs') || '[]');
-    let eggIcons = JSON.parse(getCookie('eggIcons') || 'null');
 
+    // Trwałe ikony
+    let eggIcons = JSON.parse(getCookie('eggIcons') || 'null');
     if (!eggIcons) {
-      eggIcons = Array.from({ length: 30 }, () => Math.random() < 0.5 ? '🐥' : '🐰');
+      eggIcons = Array.from({ length: 30 }, () => Math.random() < 0.5 ? '🐣' : '🐰');
       setCookie('eggIcons', JSON.stringify(eggIcons), 365);
     }
 
-    function saveOpenedEggs() {
-      setCookie('openedEggs', JSON.stringify(openedEggs), 365);
+    // Trwałe kolory
+    let eggPatterns = JSON.parse(getCookie('eggPatterns') || 'null');
+    if (!eggPatterns) {
+      eggPatterns = Array.from({ length: 30 }, () => generatePattern());
+      setCookie('eggPatterns', JSON.stringify(eggPatterns), 365);
     }
 
-    function getRandomPattern() {
+    function generatePattern() {
       const colors = ['#ff9999', '#ffcc99', '#ffff99', '#ccff99', '#99ffcc', '#99ccff', '#cc99ff'];
       const selected = [];
       while (selected.length < 3) {
@@ -172,9 +174,12 @@
       return `repeating-linear-gradient(45deg, ${selected[0]}, ${selected[0]} 10px, ${selected[1]} 10px, ${selected[1]} 20px, ${selected[2]} 20px, ${selected[2]} 30px)`;
     }
 
+    function saveOpenedEggs() {
+      setCookie('openedEggs', JSON.stringify(openedEggs), 365);
+    }
+
     function renderCalendar() {
       calendar.innerHTML = '';
-
       const messages = [
         `<p>Wesołych Świąt!</p>`,
         `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Chocolate_easter_eggs.jpg/320px-Chocolate_easter_eggs.jpg" alt="Easter Image">`,
@@ -194,7 +199,7 @@
         if (openedEggs.includes(i)) {
           const message = document.createElement('div');
           message.className = 'message';
-          message.innerHTML = messages[i] || `<p>Brak wiadomości dla jajka ${i + 1}</p>`;
+          message.innerHTML = messages[i % messages.length] || `<p>Brak wiadomości dla jajka ${i + 1}</p>`;
           eggWrapper.appendChild(message);
         } else {
           const egg = document.createElement('button');
@@ -205,15 +210,15 @@
 
           const topHalf = document.createElement('div');
           topHalf.className = 'top';
-          topHalf.style.background = getRandomPattern();
+          topHalf.style.background = eggPatterns[i];
 
           const bottomHalf = document.createElement('div');
           bottomHalf.className = 'bottom';
-          bottomHalf.style.background = topHalf.style.background;
+          bottomHalf.style.background = eggPatterns[i];
 
           const chick = document.createElement('div');
           chick.className = 'chick';
-          chick.innerText = eggIcons[i]; // 🐥 lub 🐰
+          chick.innerText = eggIcons[i];
 
           shell.appendChild(topHalf);
           shell.appendChild(bottomHalf);
@@ -226,7 +231,7 @@
               openedEggs.push(i);
               saveOpenedEggs();
               renderCalendar();
-            }, 1000); // Czas na animację
+            }, 1000);
           });
 
           eggWrapper.appendChild(egg);
@@ -237,8 +242,9 @@
     }
 
     document.getElementById('resetBtn').addEventListener('click', () => {
-      document.cookie = "openedEggs=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "eggIcons=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      ['openedEggs', 'eggIcons', 'eggPatterns'].forEach(name => {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      });
       location.reload();
     });
 
