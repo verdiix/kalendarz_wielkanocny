@@ -7,9 +7,15 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #fdf6e3;
       text-align: center;
-      padding: 20px;
+      margin: 0;
+      background: url('https://www.tapeciarnia.pl/tapety/normalne/232196_wielkanoc_jajka_pisanki_kwiaty.jpg') no-repeat center center fixed;
+      background-size: 100% 100%;
+      /* color: white; */
+      position: relative;
+    }
+    h1 {
+      text-align: center;
     }
     .calendar {
       display: grid;
@@ -17,6 +23,7 @@
       gap: 10px;
       max-width: 800px;
       margin: 0 auto;
+      justify-content: center;
     }
     .egg {
       width: 100px;
@@ -88,27 +95,37 @@
     .egg.opened .chick {
       display: none;
     }
-    #modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-    #modalContent {
+    .message {
+      width: 100px;
+      height: 140px;
       background: white;
-      padding: 20px;
-      max-width: 500px;
+      padding: 10px;
       border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      font-size: 14px;
+      animation: fadeIn 0.5s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      overflow: hidden;
+      text-align: center;
+    }
+    .message img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
     }
     #resetBtn {
-      margin-top: 20px;
+      margin: 20px auto;
       padding: 10px 20px;
       font-size: 16px;
+      display: block;
     }
   </style>
 </head>
@@ -117,19 +134,13 @@
   <div class="calendar" id="calendar"></div>
   <button id="resetBtn">Resetuj</button>
 
-  <div id="modal">
-    <div id="modalContent"></div>
-  </div>
-
   <script>
     const calendar = document.getElementById('calendar');
-    const modal = document.getElementById('modal');
-    const modalContent = document.getElementById('modalContent');
 
     function setCookie(name, value, days) {
       const date = new Date();
       date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-      document.cookie = `${name}=${encodeURIComponent(value)};expires=${date.toUTCString()};path=/;SameSite=Lax;Secure`;
+      document.cookie = name + "=" + encodeURIComponent(value) + ";expires=" + date.toUTCString() + ";path=/";
     }
 
     function getCookie(name) {
@@ -140,21 +151,16 @@
     }
 
     let openedEggs = JSON.parse(getCookie('openedEggs') || '[]');
+    let eggIcons = JSON.parse(getCookie('eggIcons') || 'null');
+
+    if (!eggIcons) {
+      eggIcons = Array.from({ length: 30 }, () => Math.random() < 0.5 ? '🐥' : '🐰');
+      setCookie('eggIcons', JSON.stringify(eggIcons), 365);
+    }
 
     function saveOpenedEggs() {
       setCookie('openedEggs', JSON.stringify(openedEggs), 365);
     }
-
-    function openModal(content) {
-      modalContent.innerHTML = content;
-      modal.style.display = 'flex';
-    }
-
-    function closeModal() {
-      modal.style.display = 'none';
-    }
-
-    modal.addEventListener('click', closeModal);
 
     function getRandomPattern() {
       const colors = ['#ff9999', '#ffcc99', '#ffff99', '#ccff99', '#99ffcc', '#99ccff', '#cc99ff'];
@@ -171,57 +177,68 @@
 
       const messages = [
         `<p>Wesołych Świąt!</p>`,
-        `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Chocolate_easter_eggs.jpg/320px-Chocolate_easter_eggs.jpg" alt="Easter Image" style="max-width:100%">`,
+        `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Chocolate_easter_eggs.jpg/320px-Chocolate_easter_eggs.jpg" alt="Easter Image">`,
         `<p>Zajączek już tu był!</p>`,
         `<p>Miłego dnia!</p>`,
-        `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Easter_bunny_and_eggs.jpg/320px-Easter_bunny_and_eggs.jpg" alt="Zajączek" style="max-width:100%">`,
+        `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Easter_bunny_and_eggs.jpg/320px-Easter_bunny_and_eggs.jpg" alt="Zajączek">`,
         `<p>Czekoladowe jajko czeka!</p>`
-        // Dodaj więcej wiadomości jeśli chcesz
       ];
 
       for (let i = 0; i < 30; i++) {
-        const egg = document.createElement('button');
-        egg.className = 'egg';
-
-        const shell = document.createElement('div');
-        shell.className = 'shell';
-
-        const topHalf = document.createElement('div');
-        topHalf.className = 'top';
-        topHalf.style.background = getRandomPattern();
-
-        const bottomHalf = document.createElement('div');
-        bottomHalf.className = 'bottom';
-        bottomHalf.style.background = topHalf.style.background;
-
-        const chick = document.createElement('div');
-        chick.className = 'chick';
-        chick.innerText = '🐥';
-
-        shell.appendChild(topHalf);
-        shell.appendChild(bottomHalf);
-        egg.appendChild(shell);
-        egg.appendChild(chick);
+        const eggWrapper = document.createElement('div');
+        eggWrapper.style.position = 'relative';
+        eggWrapper.style.display = 'flex';
+        eggWrapper.style.justifyContent = 'center';
+        eggWrapper.style.alignItems = 'center';
 
         if (openedEggs.includes(i)) {
-          egg.classList.add('opened');
+          const message = document.createElement('div');
+          message.className = 'message';
+          message.innerHTML = messages[i] || `<p>Brak wiadomości dla jajka ${i + 1}</p>`;
+          eggWrapper.appendChild(message);
+        } else {
+          const egg = document.createElement('button');
+          egg.className = 'egg';
+
+          const shell = document.createElement('div');
+          shell.className = 'shell';
+
+          const topHalf = document.createElement('div');
+          topHalf.className = 'top';
+          topHalf.style.background = getRandomPattern();
+
+          const bottomHalf = document.createElement('div');
+          bottomHalf.className = 'bottom';
+          bottomHalf.style.background = topHalf.style.background;
+
+          const chick = document.createElement('div');
+          chick.className = 'chick';
+          chick.innerText = eggIcons[i]; // 🐥 lub 🐰
+
+          shell.appendChild(topHalf);
+          shell.appendChild(bottomHalf);
+          egg.appendChild(shell);
+          egg.appendChild(chick);
+
+          egg.addEventListener('click', () => {
+            egg.classList.add('opened');
+            setTimeout(() => {
+              openedEggs.push(i);
+              saveOpenedEggs();
+              renderCalendar();
+            }, 1000); // Czas na animację
+          });
+
+          eggWrapper.appendChild(egg);
         }
 
-        egg.addEventListener('click', () => {
-          if (!openedEggs.includes(i)) {
-            openedEggs.push(i);
-            egg.classList.add('opened');
-            saveOpenedEggs();
-          }
-          openModal(messages[i] || `<p>Brak wiadomości dla jajka ${i + 1}</p>`);
-        });
-
-        calendar.appendChild(egg);
+        calendar.appendChild(eggWrapper);
       }
     }
 
     document.getElementById('resetBtn').addEventListener('click', () => {
       document.cookie = "openedEggs=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "eggIcons=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       location.reload();
     });
 
